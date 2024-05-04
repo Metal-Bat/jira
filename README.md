@@ -1,6 +1,6 @@
 # Jira similar project
 
-this project is base on famous Django cookiecutter with some modifications
+this project is base on famous Django cookiecutter with some modifications (deleting Ruff and replacing black and extra)
 
 [![Built with Cookiecutter Django](https://img.shields.io/badge/built%20with-Cookiecutter%20Django-ff69b4.svg?logo=cookiecutter)](https://github.com/cookiecutter/cookiecutter-django/)
 
