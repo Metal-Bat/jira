@@ -1,0 +1,128 @@
+version: "3"
+
+volumes:
+  production_postgres_data: {}
+  production_postgres_data_backups: {}
+  production_traefik: {}
+  production_django_media: {}
+  production_minio_data: {}
+
+services:
+  django: &django
+    build:
+      context: .
+      dockerfile: ./compose/production/django/Dockerfile
+
+    image: jira_production_django
+    volumes:
+      - production_django_media:/app/media
+    depends_on:
+      - postgres
+      - redis
+      - minio
+      - rabbitmq
+    env_file:
+      - ./.envs/.production/.django
+      - ./.envs/.production/.postgres
+    command: /start
+
+  postgres:
+    build:
+      context: .
+      dockerfile: ./compose/production/postgres/Dockerfile
+    image: jira_production_postgres
+    volumes:
+      - production_postgres_data:/var/lib/postgresql/data
+      - production_postgres_data_backups:/backups
+    env_file:
+      - ./.envs/.production/.postgres
+
+  postgres-hourly-backup:
+    image: jira_production_postgres
+    depends_on:
+      - postgres
+    volumes:
+      - ./.backup_1h:/.backup_1h
+    command: >
+      bash -c "while true; do
+        PGPASSWORD=$$POSTGRES_PASSWORD pg_dump -h postgres -U $$POSTGRES_USER -Fc $$POSTGRES_DB > /.backup_1h/$$(date +%Y-%m-%d-%H-%M-%S).dump
+        echo ""Backup done at $$(date +%Y-%m-%d_%H:%M:%S)""
+        ls -1 /.backup_1h/*.dump | head -n -5 | xargs rm -f
+        sleep 3600
+      done"
+    env_file:
+      - ./.envs/.local/.postgres
+
+  postgres-daily-backup:
+    image: jira_production_postgres
+    depends_on:
+      - postgres
+    volumes:
+      - ./.backup_24h:/.backup_24h
+    command: >
+      bash -c "while true; do
+        PGPASSWORD=$$POSTGRES_PASSWORD pg_dump -h postgres -U $$POSTGRES_USER -Fc $$POSTGRES_DB > /.backup_24h/$$(date +%Y-%m-%d-%H-%M-%S).dump
+        echo ""Backup done at $$(date +%Y-%m-%d_%H:%M:%S)""
+        ls -1 /.backup_24h/*.dump | head -n -5 | xargs rm -f
+        sleep 86400
+      done"
+    env_file:
+      - ./.envs/.local/.postgres
+
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+    env_file:
+      - ./.envs/.production/.minio
+    container_name: jira_local_minio_data
+    volumes:
+      - production_minio_data:/var/lib/minio/data
+
+  rabbitmq:
+    image: docker.io/rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  traefik:
+    build:
+      context: .
+      dockerfile: ./compose/production/traefik/Dockerfile
+    image: jira_production_traefik
+    depends_on:
+      - django
+    volumes:
+      - production_traefik:/etc/traefik/acme
+    ports:
+      - "0.0.0.0:80:80"
+      - "0.0.0.0:443:443"
+      - "0.0.0.0:5555:5555"
+
+  redis:
+    image: docker.io/redis:6
+
+  celeryworker:
+    <<: *django
+    image: jira_production_celeryworker
+    command: /start-celeryworker
+
+  celerybeat:
+    <<: *django
+    image: jira_production_celerybeat
+    command: /start-celerybeat
+
+  flower:
+    <<: *django
+    image: jira_production_flower
+    command: /start-flower
+
+  nginx:
+    build:
+      context: .
+      dockerfile: ./compose/production/nginx/Dockerfile
+    image: jira_local_nginx
+    depends_on:
+      - django
+    volumes:
+      - production_django_media:/usr/share/nginx/media:ro

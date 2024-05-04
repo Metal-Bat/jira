@@ -1,0 +1,7 @@
+# PostgreSQL
+# ------------------------------------------------------------------------------
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=jira
+POSTGRES_USER=SPjIWFbybXPcGvMhJdDnUXNMyjQifquR
+POSTGRES_PASSWORD=FJBj4iz9WSy7SdXKTVe2MSwehRglkRFCTfHVtZzr3vlhgfahhGqPx9et9WggJ0ng

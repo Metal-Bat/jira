@@ -1,0 +1,25 @@
+# General
+# ------------------------------------------------------------------------------
+USE_DOCKER=yes
+DJANGO_DEBUG=true
+IPYTHONDIR=/app/.ipython
+TIME_ZONE=Asia/Tehran
+USE_TZ=True
+DJANGO_SECRET_KEY=zDseM9OQ2VhWlymfz5InPE2lPykAxLcT4izxwyKBkbMMaTNAhVxdmnbFGRGb2XZT
+
+# Redis
+# ------------------------------------------------------------------------------
+REDIS_URL=redis://redis:6379/0
+
+# Celery
+# ------------------------------------------------------------------------------
+CELERY_BROKER_URL=amqp://@rabbitmq:5672/0
+
+# Flower
+CELERY_FLOWER_USER=VibKwTZsVYcdfRhbIwOoKPqiZdAOClDR
+CELERY_FLOWER_PASSWORD=jEIax0EMofczPESKsgiPzL1CY7PxbVyETi67APrNybD7dGl7vCnhLeCQ5rAyMLuV
+
+# MINIO
+MINIO_URL=minio:9000
+MINIO_ACCESS_KEY=Pw/TX3hNSroPW1/jGZj/kASgU2PlsdQv0Z1Tu1jLxNUfoflDuyTxT2BddaP6xHrW
+MINIO_SECRET_KEY=ehzYW+WMrPQ0yshTWYvvQ23wLmLuByskSaw/120Lsk3Zq2uvNQDmZ/E7xFSMG17T
